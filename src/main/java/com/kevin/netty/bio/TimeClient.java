@@ -31,8 +31,10 @@ public class TimeClient {
             e.printStackTrace();
         } finally {
             try {
-                client.close();
-                client = null;
+                if (null != client) {
+                    client.close();
+                    client = null;
+                }
             } catch (IOException e) {
             }
         }

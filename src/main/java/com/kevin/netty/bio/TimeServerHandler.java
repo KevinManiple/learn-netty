@@ -38,16 +38,22 @@ public class TimeServerHandler implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            pw.close();
-            pw = null;
+            if (null != pw) {
+                pw.close();
+                pw = null;
+            }
             try {
-                br.close();
-                br = null;
+                if (null != br) {
+                    br.close();
+                    br = null;
+                }
             } catch (IOException e) {
             }
             try {
-                this.client.close();
-                this.client = null;
+                if (null != this.client) {
+                    this.client.close();
+                    this.client = null;
+                }
             } catch (IOException e) {
             }
         }

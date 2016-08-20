@@ -26,8 +26,10 @@ public class TimeServer {
             e.printStackTrace();
         } finally {
             try {
-                ss.close();
-                ss = null;
+                if (null != ss) {
+                    ss.close();
+                    ss = null;
+                }
             } catch (IOException e) {
             }
         }
