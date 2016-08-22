@@ -1,19 +1,4 @@
-/*
- * Copyright 2013-2018 Lilinfeng.
- *  
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *  
- *      http://www.apache.org/licenses/LICENSE-2.0
- *  
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package com.phei.netty.nio;
+package com.kevin.netty.nio;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -24,16 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-/**
- * @author Administrator
- * @date 2014年2月16日
- * @version 1.0
- */
 public class TimeClientHandle implements Runnable {
-    
-    private String host;
-    
-    private int port;
     
     private Selector selector;
     
@@ -42,30 +18,24 @@ public class TimeClientHandle implements Runnable {
     private volatile boolean stop;
     
     public TimeClientHandle(String host, int port) {
-        this.host = host == null ? "127.0.0.1" : host;
-        this.port = port;
         try {
             selector = Selector.open();
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
+            if (socketChannel.connect(new InetSocketAddress(host, port))) {
+                socketChannel.register(selector, SelectionKey.OP_READ);
+                doWrite(socketChannel);
+            } else {
+                socketChannel.register(selector, SelectionKey.OP_CONNECT);
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            System.exit(1);
+            System.exit(-1);
         }
     }
     
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Runnable#run()
-     */
     @Override
     public void run() {
-        try {
-            doConnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
         while (!stop) {
             try {
                 selector.select(1000);
@@ -128,15 +98,6 @@ public class TimeClientHandle implements Runnable {
                     ; // 读到0字节，忽略
             }
         }
-    }
-    
-    private void doConnect() throws IOException {
-        // 如果直接连接成功，则注册到多路复用器上，发送请求消息，读应答
-        if (socketChannel.connect(new InetSocketAddress(host, port))) {
-            socketChannel.register(selector, SelectionKey.OP_READ);
-            doWrite(socketChannel);
-        } else
-            socketChannel.register(selector, SelectionKey.OP_CONNECT);
     }
     
     private void doWrite(SocketChannel sc) throws IOException {
